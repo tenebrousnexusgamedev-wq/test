@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilentOwl Studio Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        
+        .futuristic-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .steam-card {
+            transition: all 0.3s ease;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .steam-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.04);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .loading-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #1e40af, #3b82f6, #60a5fa);
+            border-radius: 3px;
+            animation: loading 2s infinite;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        .gear-spin {
+            animation: spin 3s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .glow-button {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            box-shadow: 0 4px 15px 0 rgba(59, 130, 246, 0.5);
+        }
+        
+        .glow-button:hover {
+            box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        .chatbot-panel {
+            transition: all 0.3s ease;
+            transform: translateY(100%);
+        }
+        
+        .chatbot-panel.open {
+            transform: translateY(0);
+        }
+        
+        .notification {
+            transition: all 0.5s ease;
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Loading Scene -->
+    <div id="loadingScene" class="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center">
+            <i data-lucide="settings" class="w-16 h-16 text-blue-500 mx-auto mb-4 gear-spin"></i>
+            <h2 id="loadingText" class="text-2xl futuristic-font mb-4">Memuat aset game...</h2>
+            <div class="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div class="loading-bar"></div>
+            </div>
+            <div id="offlineMessage" class="hidden mt-4">
+                <p class="text-red-400 mb-2">Koneksi terputus</p>
+                <button id="retryButton" class="px-4 py-2 bg-blue-600 rounded futuristic-font">Coba Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (initially hidden) -->
+    <div id="mainContent" class="hidden">
+        <!-- Header -->
+        <header class="bg-gray-900 border-b border-blue-800 sticky top-0 z-40">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="gamepad-2" class="w-8 h-8 text-blue-500"></i>
+                    <h1 class="text-2xl futuristic-font text-blue-400">SilentOwl Studio</h1>
+                </div>
+                
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#home" class="hover:text-blue-400 transition-colors futuristic-font">Home</a>
+                    <a href="#games" class="hover:text-blue-400 transition-colors futuristic-font">Games</a>
+                    <a href="#about" class="hover:text-blue-400 transition-colors futuristic-font">About</a>
+                    <a href="#support" class="hover:text-blue-400 transition-colors futuristic-font">Support</a>
+                </nav>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="languageToggle" class="flex items-center space-x-1 px-3 py-1 rounded border border-blue-700 hover:bg-blue-900 transition-colors">
+                        <span>🇮🇩</span>
+                        <span id="languageText">ID</span>
+                    </button>
+                    
+                    <!-- Admin/Login Section (hidden by default) -->
+                    <div id="adminSection" class="hidden items-center space-x-2">
+                        <span id="adminName" class="text-sm"></span>
+                        <button id="logoutButton" class="px-3 py-1 bg-red-600 rounded text-sm futuristic-font">Logout</button>
+                        <button id="editorToggle" class="px-3 py-1 bg-green-600 rounded text-sm futuristic-font">Editor</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Sections -->
+        <main>
+            <!-- Home Section -->
+            <section id="home" class="py-16 px-4">
+                <div class="container mx-auto text-center">
+                    <h2 class="text-4xl md:text-5xl futuristic-font mb-6 text-blue-300">SILENTOWL STUDIO HUB</h2>
+                    <p id="homeSubtitle" class="text-xl mb-10 max-w-2xl mx-auto">Platform Interaktif Game & Promo Digital</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                        <!-- Featured Game 1 -->
+                        <div class="steam-card rounded-lg p-4">
+                            <div class="h-48 bg-gray-800 rounded mb-4 flex items-center justify-center">
+                                <i data-lucide="image" class="w-16 h-16 text-gray-500"></i>
+                            </div>
+                            <h3 class="text-xl futuristic-font mb-2">Shadow Realms</h3>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-blue-400">v1.2.5</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="line-through text-gray-500">IDR 150.000</span>
+                                    <span class="bg-green-600 px-2 py-1 rounded text-sm">-20%</span>
+                                </div>
+                            </div>
+                            <p id="game1Desc" class="text-gray-400 text-sm mb-4">Petualangan horor di dunia yang penuh misteri dan teror.</p>
+                            <div class="flex space-x-2">
+                                <button class="flex-1 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600 transition-colors">Detail</button>
+                                <button class="flex-1 py-2 glow-button rounded futuristic-font">Beli Sekarang</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Featured Game 2 -->
+                        <div class="steam-card rounded-lg p-4">
+                            <div class="h-48 bg-gray-800 rounded mb-4 flex items-center justify-center">
+                                <i data-lucide="image" class="w-16 h-16 text-gray-500"></i>
+                            </div>
+                            <h3 class="text-xl futuristic-font mb-2">Echoes of Silence</h3>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-blue-400">v2.0.1</span>
+                                <div class="text-lg">IDR 99.000</div>
+                            </div>
+                            <p id="game2Desc" class="text-gray-400 text-sm mb-4">Game petualangan dengan cerita yang mendalam dan atmosfer menegangkan.</p>
+                            <div class="flex space-x-2">
+                                <button class="flex-1 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600 transition-colors">Detail</button>
+                                <button class="flex-1 py-2 glow-button rounded futuristic-font">Beli Sekarang</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Featured Game 3 -->
+                        <div class="steam-card rounded-lg p-4">
+                            <div class="h-48 bg-gray-800 rounded mb-4 flex items-center justify-center">
+                                <i data-lucide="image" class="w-16 h-16 text-gray-500"></i>
+                            </div>
+                            <h3 class="text-xl futuristic-font mb-2">Nightmare Asylum</h3>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-blue-400">v1.5.0</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="line-through text-gray-500">IDR 120.000</span>
+                                    <span class="bg-green-600 px-2 py-1 rounded text-sm">-15%</span>
+                                </div>
+                            </div>
+                            <p id="game3Desc" class="text-gray-400 text-sm mb-4">Bertahan hidup di rumah sakit jiwa yang angker dengan teka-teki yang menantang.</p>
+                            <div class="flex space-x-2">
+                                <button class="flex-1 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600 transition-colors">Detail</button>
+                                <button class="flex-1 py-2 glow-button rounded futuristic-font">Beli Sekarang</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Games Section -->
+            <section id="games" class="py-16 px-4 bg-gray-800/30">
+                <div class="container mx-auto">
+                    <h2 class="text-3xl futuristic-font mb-8 text-center text-blue-300">GAME KAMI</h2>
+                    
+                    <!-- Filter Buttons -->
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                        <button class="filter-btn px-4 py-2 bg-blue-700 rounded futuristic-font" data-filter="all">All</button>
+                        <button class="filter-btn px-4 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600" data-filter="promo">Promo</button>
+                        <button class="filter-btn px-4 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600" data-filter="new">New</button>
+                        <button class="filter-btn px-4 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600" data-filter="popular">Popular</button>
+                        <button id="refreshGames" class="px-4 py-2 bg-green-700 rounded futuristic-font hover:bg-green-600 flex items-center space-x-1">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Games Grid -->
+                    <div id="gamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Games will be dynamically loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="about" class="py-16 px-4">
+                <div class="container mx-auto max-w-4xl">
+                    <h2 class="text-3xl futuristic-font mb-8 text-center text-blue-300">TENTANG KAMI</h2>
+                    
+                    <div class="steam-card rounded-lg p-6 mb-8">
+                        <h3 class="text-xl futuristic-font mb-4 text-blue-400">Misi Kami</h3>
+                        <p id="aboutText" class="mb-4">SilentOwl Studio adalah pengembang game indie yang berfokus pada pembuatan pengalaman horor dan petualangan yang unik dan mendalam. Kami percaya bahwa setiap game harus menceritakan kisah yang menarik dan memberikan pengalaman yang tak terlupakan bagi pemain.</p>
+                        <p id="aboutText2">Dengan tim yang berpengalaman dalam industri game, kami berkomitmen untuk menghadirkan kualitas terbaik dalam setiap proyek yang kami kerjakan.</p>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-6 mt-8">
+                        <a href="#" class="flex items-center space-x-2 hover:text-blue-400 transition-colors">
+                            <i data-lucide="message-circle" class="w-6 h-6"></i>
+                            <span>Discord</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-2 hover:text-blue-400 transition-colors">
+                            <i data-lucide="youtube" class="w-6 h-6"></i>
+                            <span>YouTube</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-2 hover:text-blue-400 transition-colors">
+                            <i data-lucide="mail" class="w-6 h-6"></i>
+                            <span>Email</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Support Section -->
+            <section id="support" class="py-16 px-4 bg-gray-800/30">
+                <div class="container mx-auto max-w-2xl">
+                    <h2 class="text-3xl futuristic-font mb-8 text-center text-blue-300">DUKUNGAN</h2>
+                    
+                    <div class="steam-card rounded-lg p-6">
+                        <form id="supportForm" class="space-y-4">
+                            <div>
+                                <label for="name" class="block mb-2 futuristic-font">Nama</label>
+                                <input type="text" id="name" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label for="message" class="block mb-2 futuristic-font">Pesan</label>
+                                <textarea id="message" rows="5" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-3 glow-button rounded futuristic-font">Kirim Pesan</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 border-t border-blue-800 py-8 px-4">
+            <div class="container mx-auto text-center">
+                <div class="flex justify-center space-x-6 mb-4">
+                    <a href="#" class="hover:text-blue-400 transition-colors">
+                        <i data-lucide="twitter" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-blue-400 transition-colors">
+                        <i data-lucide="facebook" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-blue-400 transition-colors">
+                        <i data-lucide="instagram" class="w-6 h-6"></i>
+                    </a>
+                </div>
+                <p class="text-gray-400">&copy; 2023 SilentOwl Studio. All rights reserved.</p>
+                <p class="text-gray-500 text-sm mt-2">Made by SilentOwlWira</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Chatbot -->
+    <div id="chatbot" class="fixed bottom-4 right-4 z-30">
+        <div id="chatbotButton" class="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-500 transition-colors">
+            <i data-lucide="message-square" class="w-6 h-6 text-white"></i>
+        </div>
+        
+        <div id="chatbotPanel" class="chatbot-panel absolute bottom-16 right-0 w-80 h-96 bg-gray-800 rounded-lg shadow-xl border border-blue-700 flex flex-col">
+            <div class="p-4 border-b border-blue-700 flex justify-between items-center">
+                <h3 class="futuristic-font text-blue-400">MessageBot</h3>
+                <button id="closeChatbot" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4">
+                <div class="bg-gray-700 p-3 rounded-lg max-w-xs">
+                    <p id="chatWelcome">Halo! Ada yang bisa saya bantu?</p>
+                </div>
+                <div class="bg-gray-700 p-3 rounded-lg max-w-xs">
+                    <p id="chatSuggestion">Lihat game terbaru kami?</p>
+                </div>
+                <div class="bg-gray-700 p-3 rounded-lg max-w-xs">
+                    <p id="chatSecret">Ketik 'silentowlwira' untuk mode pengembang 👀</p>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-blue-700">
+                <div class="flex space-x-2">
+                    <input id="chatInput" type="text" placeholder="Ketik pesan..." class="flex-1 px-3 py-2 bg-gray-700 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <button id="sendMessage" class="px-4 py-2 bg-blue-600 rounded futuristic-font hover:bg-blue-500">Kirim</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="steam-card rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl futuristic-font text-blue-400">Login Admin</h3>
+                <button id="closeLoginModal" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="username" class="block mb-2 futuristic-font">Username</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="password" class="block mb-2 futuristic-font">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                
+                <div id="loginLoading" class="hidden text-center py-2">
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto"></i>
+                    <p class="mt-2">Authenticating...</p>
+                </div>
+                
+                <button type="submit" class="w-full py-3 glow-button rounded futuristic-font">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Game Editor Modal -->
+    <div id="editorModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="steam-card rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl futuristic-font text-blue-400">Editor Game</h3>
+                <button id="closeEditorModal" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="gameForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="gameTitle" class="block mb-2 futuristic-font">Judul Game</label>
+                        <input type="text" id="gameTitle" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="gameVersion" class="block mb-2 futuristic-font">Versi</label>
+                        <input type="text" id="gameVersion" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="gameDescription" class="block mb-2 futuristic-font">Deskripsi</label>
+                    <textarea id="gameDescription" rows="3" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="gamePrice" class="block mb-2 futuristic-font">Harga (IDR)</label>
+                        <input type="number" id="gamePrice" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="gameDiscount" class="block mb-2 futuristic-font">Diskon (%)</label>
+                        <input type="number" id="gameDiscount" min="0" max="100" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="gameImage" class="block mb-2 futuristic-font">Gambar Game (URL)</label>
+                    <input type="url" id="gameImage" class="w-full px-4 py-2 bg-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-sm text-gray-400 mt-1">Masukkan URL gambar untuk preview</p>
+                </div>
+                
+                <div id="imagePreview" class="hidden mt-4">
+                    <p class="futuristic-font mb-2">Preview:</p>
+                    <div class="h-40 bg-gray-800 rounded flex items-center justify-center overflow-hidden">
+                        <img id="previewImage" src="" alt="Preview" class="max-h-full max-w-full">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full py-3 glow-button rounded futuristic-font">Upload Game</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <div class="flex items-center space-x-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span id="notificationText">Game berhasil ditambahkan!</span>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Multi-language system
+        const translations = {
+            id: {
+                loadingText: "Memuat aset game...",
+                homeSubtitle: "Platform Interaktif Game & Promo Digital",
+                game1Desc: "Petualangan horor di dunia yang penuh misteri dan teror.",
+                game2Desc: "Game petualangan dengan cerita yang mendalam dan atmosfer menegangkan.",
+                game3Desc: "Bertahan hidup di rumah sakit jiwa yang angker dengan teka-teki yang menantang.",
+                aboutText: "SilentOwl Studio adalah pengembang game indie yang berfokus pada pembuatan pengalaman horor dan petualangan yang unik dan mendalam. Kami percaya bahwa setiap game harus menceritakan kisah yang menarik dan memberikan pengalaman yang tak terlupakan bagi pemain.",
+                aboutText2: "Dengan tim yang berpengalaman dalam industri game, kami berkomitmen untuk menghadirkan kualitas terbaik dalam setiap proyek yang kami kerjakan.",
+                chatWelcome: "Halo! Ada yang bisa saya bantu?",
+                chatSuggestion: "Lihat game terbaru kami?",
+                chatSecret: "Ketik 'silentowlwira' untuk mode pengembang 👀",
+                notificationText: "Game berhasil ditambahkan!",
+                filterAll: "Semua",
+                filterPromo: "Promo",
+                filterNew: "Baru",
+                filterPopular: "Populer",
+                refresh: "Refresh",
+                loginTitle: "Login Admin",
+                username: "Username",
+                password: "Password",
+                loginButton: "Login",
+                authenticating: "Authenticating...",
+                editorTitle: "Editor Game",
+                gameTitle: "Judul Game",
+                gameVersion: "Versi",
+                gameDescription: "Deskripsi",
+                gamePrice: "Harga (IDR)",
+                gameDiscount: "Diskon (%)",
+                gameImage: "Gambar Game (URL)",
+                uploadGame: "Upload Game",
+                supportName: "Nama",
+                supportMessage: "Pesan",
+                sendMessage: "Kirim Pesan",
+                buyNow: "Beli Sekarang",
+                details: "Detail"
+            },
+            en: {
+                loadingText: "Loading game assets...",
+                homeSubtitle: "Interactive Game & Digital Promo Platform",
+                game1Desc: "Horror adventure in a world full of mystery and terror.",
+                game2Desc: "Adventure game with a deep story and tense atmosphere.",
+                game3Desc: "Survive in a haunted mental hospital with challenging puzzles.",
+                aboutText: "SilentOwl Studio is an indie game developer focused on creating unique and deep horror and adventure experiences. We believe that every game should tell an engaging story and provide an unforgettable experience for players.",
+                aboutText2: "With an experienced team in the gaming industry, we are committed to delivering the best quality in every project we work on.",
+                chatWelcome: "Hello! How can I help you?",
+                chatSuggestion: "Check out our latest games?",
+                chatSecret: "Type 'silentowlwira' for developer mode 👀",
+                notificationText: "Game successfully added!",
+                filterAll: "All",
+                filterPromo: "Promo",
+                filterNew: "New",
+                filterPopular: "Popular",
+                refresh: "Refresh",
+                loginTitle: "Admin Login",
+                username: "Username",
+                password: "Password",
+                loginButton: "Login",
+                authenticating: "Authenticating...",
+                editorTitle: "Game Editor",
+                gameTitle: "Game Title",
+                gameVersion: "Version",
+                gameDescription: "Description",
+                gamePrice: "Price (IDR)",
+                gameDiscount: "Discount (%)",
+                gameImage: "Game Image (URL)",
+                uploadGame: "Upload Game",
+                supportName: "Name",
+                supportMessage: "Message",
+                sendMessage: "Send Message",
+                buyNow: "Buy Now",
+                details: "Details"
+            }
+        };
+
+        // App state
+        let currentLanguage = localStorage.getItem('language') || 'id';
+        let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        let games = JSON.parse(localStorage.getItem('games')) || [
+            {
+                id: 1,
+                title: "Shadow Realms",
+                version: "v1.2.5",
+                description: "Petualangan horor di dunia yang penuh misteri dan teror.",
+                price: 150000,
+                discount: 20,
+                image: "",
+                category: "popular"
+            },
+            {
+                id: 2,
+                title: "Echoes of Silence",
+                version: "v2.0.1",
+                description: "Game petualangan dengan cerita yang mendalam dan atmosfer menegangkan.",
+                price: 99000,
+                discount: 0,
+                image: "",
+                category: "new"
+            },
+            {
+                id: 3,
+                title: "Nightmare Asylum",
+                version: "v1.5.0",
+                description: "Bertahan hidup di rumah sakit jiwa yang angker dengan teka-teki yang menantang.",
+                price: 120000,
+                discount: 15,
+                image: "",
+                category: "promo"
+            }
+        ];
+
+        // DOM Elements
+        const loadingScene = document.getElementById('loadingScene');
+        const mainContent = document.getElementById('mainContent');
+        const loadingText = document.getElementById('loadingText');
+        const offlineMessage = document.getElementById('offlineMessage');
+        const retryButton = document.getElementById('retryButton');
+        const languageToggle = document.getElementById('languageToggle');
+        const languageText = document.getElementById('languageText');
+        const adminSection = document.getElementById('adminSection');
+        const adminName = document.getElementById('adminName');
+        const logoutButton = document.getElementById('logoutButton');
+        const editorToggle = document.getElementById('editorToggle');
+        const gamesGrid = document.getElementById('gamesGrid');
+        const refreshGames = document.getElementById('refreshGames');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const chatbotButton = document.getElementById('chatbotButton');
+        const chatbotPanel = document.getElementById('chatbotPanel');
+        const closeChatbot = document.getElementById('closeChatbot');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessage = document.getElementById('sendMessage');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const loginForm = document.getElementById('loginForm');
+        const loginLoading = document.getElementById('loginLoading');
+        const editorModal = document.getElementById('editorModal');
+        const closeEditorModal = document.getElementById('closeEditorModal');
+        const gameForm = document.getElementById('gameForm');
+        const gameImage = document.getElementById('gameImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        const supportForm = document.getElementById('supportForm');
+
+        // Initialize the app
+        function init() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
+            // Check online status
+            window.addEventListener('online', handleOnlineStatus);
+            window.addEventListener('offline', handleOnlineStatus);
+            handleOnlineStatus();
+            
+            // Load language
+            loadLanguage();
+            
+            // Check if user is logged in
+            checkLoginStatus();
+            
+            // Load games
+            renderGames();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Simulate loading
+            simulateLoading();
+        }
+
+        // Handle online/offline status
+        function handleOnlineStatus() {
+            if (!navigator.onLine) {
+                offlineMessage.classList.remove('hidden');
+            } else {
+                offlineMessage.classList.add('hidden');
+            }
+        }
+
+        // Load language translations
+        function loadLanguage() {
+            const lang = translations[currentLanguage];
+            
+            // Update text content
+            document.querySelectorAll('[id]').forEach(element => {
+                const key = element.id;
+                if (lang[key]) {
+                    if (element.tagName === 'INPUT' && element.type !== 'submit') {
+                        element.placeholder = lang[key];
+                    } else {
+                        element.textContent = lang[key];
+                    }
+                }
+            });
+            
+            // Update language toggle
+            languageText.textContent = currentLanguage.toUpperCase();
+            languageToggle.innerHTML = currentLanguage === 'id' ? 
+                '<span>🇮🇩</span><span>ID</span>' : 
+                '<span>🇬🇧</span><span>EN</span>';
+                
+            // Re-render games to update language
+            renderGames();
+        }
+
+        // Check login status
+        function checkLoginStatus() {
+            if (isLoggedIn) {
+                adminSection.classList.remove('hidden');
+                adminName.textContent = localStorage.getItem('username') || 'Admin';
+            } else {
+                adminSection.classList.add('hidden');
+            }
+        }
+
+        // Render games to the grid
+        function renderGames(filter = 'all') {
+            gamesGrid.innerHTML = '';
+            
+            const filteredGames = filter === 'all' ? games : games.filter(game => {
+                if (filter === 'promo') return game.discount > 0;
+                if (filter === 'new') return game.category === 'new';
+                if (filter === 'popular') return game.category === 'popular';
+                return true;
+            });
+            
+            filteredGames.forEach(game => {
+                const discountedPrice = game.discount > 0 ? 
+                    Math.round(game.price * (1 - game.discount / 100)) : 
+                    game.price;
+                
+                const gameCard = document.createElement('div');
+                gameCard.className = 'steam-card rounded-lg p-4';
+                gameCard.innerHTML = `
+                    <div class="h-48 bg-gray-800 rounded mb-4 flex items-center justify-center overflow-hidden">
+                        ${game.image ? 
+                            `<img src="${game.image}" alt="${game.title}" class="h-full w-full object-cover">` : 
+                            `<i data-lucide="image" class="w-16 h-16 text-gray-500"></i>`
+                        }
+                    </div>
+                    <h3 class="text-xl futuristic-font mb-2">${game.title}</h3>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-blue-400">${game.version}</span>
+                        <div class="flex items-center space-x-2">
+                            ${game.discount > 0 ? 
+                                `<span class="line-through text-gray-500">IDR ${game.price.toLocaleString()}</span>
+                                 <span class="bg-green-600 px-2 py-1 rounded text-sm">-${game.discount}%</span>` : 
+                                ''
+                            }
+                            <span class="text-lg">IDR ${discountedPrice.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">${game.description}</p>
+                    <div class="flex space-x-2">
+                        <button class="flex-1 py-2 bg-gray-700 rounded futuristic-font hover:bg-gray-600 transition-colors">
+                            ${currentLanguage === 'id' ? 'Detail' : 'Details'}
+                        </button>
+                        <button class="flex-1 py-2 glow-button rounded futuristic-font">
+                            ${currentLanguage === 'id' ? 'Beli Sekarang' : 'Buy Now'}
+                        </button>
+                    </div>
+                `;
+                
+                gamesGrid.appendChild(gameCard);
+            });
+            
+            // Re-initialize icons for new elements
+            lucide.createIcons();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Language toggle
+            languageToggle.addEventListener('click', () => {
+                currentLanguage = currentLanguage === 'id' ? 'en' : 'id';
+                localStorage.setItem('language', currentLanguage);
+                loadLanguage();
+            });
+            
+            // Retry button for offline mode
+            retryButton.addEventListener('click', () => {
+                if (navigator.onLine) {
+                    offlineMessage.classList.add('hidden');
+                }
+            });
+            
+            // Logout button
+            logoutButton.addEventListener('click', () => {
+                isLoggedIn = false;
+                localStorage.setItem('isLoggedIn', 'false');
+                localStorage.removeItem('username');
+                checkLoginStatus();
+            });
+            
+            // Editor toggle
+            editorToggle.addEventListener('click', () => {
+                editorModal.classList.remove('hidden');
+            });
+            
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const filter = button.getAttribute('data-filter');
+                    
+                    // Update active button
+                    filterButtons.forEach(btn => {
+                        if (btn.getAttribute('data-filter') === filter) {
+                            btn.classList.add('bg-blue-700');
+                            btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                        } else {
+                            btn.classList.remove('bg-blue-700');
+                            btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                        }
+                    });
+                    
+                    renderGames(filter);
+                });
+            });
+            
+            // Refresh games
+            refreshGames.addEventListener('click', () => {
+                renderGames();
+            });
+            
+            // Chatbot
+            chatbotButton.addEventListener('click', () => {
+                chatbotPanel.classList.add('open');
+            });
+            
+            closeChatbot.addEventListener('click', () => {
+                chatbotPanel.classList.remove('open');
+            });
+            
+            // Send message in chatbot
+            sendMessage.addEventListener('click', sendChatMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+            
+            // Login modal
+            closeLoginModal.addEventListener('click', () => {
+                loginModal.classList.add('hidden');
+            });
+            
+            // Login form
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                // Show loading
+                loginLoading.classList.remove('hidden');
+                
+                // Simulate authentication
+                setTimeout(() => {
+                    if (username && password) {
+                        isLoggedIn = true;
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('username', username);
+                        checkLoginStatus();
+                        loginModal.classList.add('hidden');
+                        loginForm.reset();
+                        
+                        // Show editor modal after login
+                        editorModal.classList.remove('hidden');
+                    }
+                    
+                    loginLoading.classList.add('hidden');
+                }, 1500);
+            });
+            
+            // Editor modal
+            closeEditorModal.addEventListener('click', () => {
+                editorModal.classList.add('hidden');
+            });
+            
+            // Game image preview
+            gameImage.addEventListener('input', () => {
+                if (gameImage.value) {
+                    previewImage.src = gameImage.value;
+                    imagePreview.classList.remove('hidden');
+                } else {
+                    imagePreview.classList.add('hidden');
+                }
+            });
+            
+            // Game form submission
+            gameForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const title = document.getElementById('gameTitle').value;
+                const version = document.getElementById('gameVersion').value;
+                const description = document.getElementById('gameDescription').value;
+                const price = parseInt(document.getElementById('gamePrice').value);
+                const discount = parseInt(document.getElementById('gameDiscount').value) || 0;
+                const image = document.getElementById('gameImage').value;
+                
+                // Add new game
+                const newGame = {
+                    id: games.length + 1,
+                    title,
+                    version,
+                    description,
+                    price,
+                    discount,
+                    image,
+                    category: discount > 0 ? 'promo' : 'new'
+                };
+                
+                games.push(newGame);
+                localStorage.setItem('games', JSON.stringify(games));
+                
+                // Reset form
+                gameForm.reset();
+                imagePreview.classList.add('hidden');
+                
+                // Show notification
+                showNotification();
+                
+                // Update games grid
+                renderGames();
+            });
+            
+            // Support form
+            supportForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert(currentLanguage === 'id' ? 'Pesan terkirim! Terima kasih atas feedback Anda.' : 'Message sent! Thank you for your feedback.');
+                supportForm.reset();
+            });
+        }
+
+        // Send chat message
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'bg-blue-600 p-3 rounded-lg max-w-xs ml-auto';
+            userMessage.innerHTML = `<p>${message}</p>`;
+            chatMessages.appendChild(userMessage);
+            
+            // Check for secret command
+            if (message.toLowerCase() === 'silentowlwira') {
+                // Show login modal
+                loginModal.classList.remove('hidden');
+                chatbotPanel.classList.remove('open');
+                
+                // Add bot response
+                const botResponse = document.createElement('div');
+                botResponse.className = 'bg-gray-700 p-3 rounded-lg max-w-xs';
+                botResponse.innerHTML = `<p>${currentLanguage === 'id' ? 'Membuka panel admin...' : 'Opening admin panel...'}</p>`;
+                chatMessages.appendChild(botResponse);
+            } else {
+                // Add generic bot response
+                const botResponse = document.createElement('div');
+                botResponse.className = 'bg-gray-700 p-3 rounded-lg max-w-xs';
+                botResponse.innerHTML = `<p>${currentLanguage === 'id' ? 'Terima kasih atas pesan Anda!' : 'Thank you for your message!'}</p>`;
+                chatMessages.appendChild(botResponse);
+            }
+            
+            // Clear input and scroll to bottom
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show notification
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Simulate loading
+        function simulateLoading() {
+            setTimeout(() => {
+                loadingScene.classList.add('opacity-0');
+                setTimeout(() => {
+                    loadingScene.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                }, 500);
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
